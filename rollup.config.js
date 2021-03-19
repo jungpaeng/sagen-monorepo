@@ -8,7 +8,7 @@ import { sizeSnapshot } from 'rollup-plugin-size-snapshot';
 const createBabelConfig = require('./babel.config');
 
 const { root } = path.parse(process.cwd());
-const extensions = ['.js', '.ts', '.tsx'];
+const extensions = ['.js', '.ts'];
 
 function external(id) {
   return !id.startsWith('.') && !id.startsWith(root);
