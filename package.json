@@ -1,6 +1,6 @@
 {
-  "name": "sagen",
-  "version": "1.1.1",
+  "name": "sagen-core",
+  "version": "0.1.0",
   "description": "Management global state with out provider",
   "main": "index.js",
   "module": "index.esm.js",
@@ -8,8 +8,8 @@
   "repository": "https://github.com/jungpaeng/sagen-core.git",
   "author": "jungpaeng <meis1541@naver.com> (https://github.com/jungpaeng)",
   "license": "MIT",
-  "homepage": "https://github.com/jungpaeng/sagen",
-  "bugs": "https://github.com/jungpaeng/sagen/issues",
+  "homepage": "https://github.com/jungpaeng/sagen-core",
+  "bugs": "https://github.com/jungpaeng/sagen-core/issues",
   "scripts": {
     "eslint": "eslint --fix \"src/**/*.{js,ts}\"",
     "eslint-examples": "eslint --fix \"example/src/**/*.{js,ts}\"",
@@ -57,7 +57,6 @@
     "state",
     "manager",
     "management",
-    "redux",
     "store",
     "state management",
     "flux"
