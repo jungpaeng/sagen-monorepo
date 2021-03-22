@@ -1,5 +1,3 @@
-function isFunction(data: any) {
+export function isFunction(data: any) {
   return typeof data === 'function';
 }
-
-export default isFunction;

@@ -7,21 +7,16 @@
   },
   "extends": [
     "prettier",
-    "prettier/react",
-    "prettier/@typescript-eslint",
     "plugin:prettier/recommended",
-    "plugin:react-hooks/recommended",
     "plugin:import/errors",
     "plugin:import/warnings"
   ],
-  "plugins": ["@typescript-eslint", "react", "prettier", "react-hooks", "import", "jest"],
+  "plugins": ["@typescript-eslint", "prettier", "import", "jest"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    },
+    "ecmaFeatures": {},
     "rules": {
       "curly": ["warn", "multi-line", "consistent"],
       "no-console": "off",
@@ -43,21 +38,14 @@
     }
   },
   "settings": {
-    "react": {
-      "version": "detect"
-    },
-    "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
+    "import/extensions": [".js", ".ts"],
     "import/parsers": {
-      "@typescript-eslint/parser": [".js", ".jsx", ".ts", ".tsx"]
+      "@typescript-eslint/parser": [".js", ".ts"]
     },
     "import/resolver": {
       "node": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx", ".json"],
+        "extensions": [".js", ".ts", ".json"],
         "paths": ["src"]
-      },
-      "alias": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx", ".json"],
-        "map": [["zustand", "./src/index.ts"]]
       }
     }
   },

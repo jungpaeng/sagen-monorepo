@@ -2,25 +2,23 @@
   <img width="300" alt="sagen Logo" src="https://user-images.githubusercontent.com/26024412/101279836-780ddb80-3808-11eb-9ff5-69693c56373e.png" style="max-width: 100%;"><br/>
 </h1>
 
-[![Build Status](https://travis-ci.com/jungpaeng/sagen.svg?branch=main)](https://travis-ci.com/jungpaeng/sagen)
-[![Maintainability](https://api.codeclimate.com/v1/badges/0c2a4ad6c9ad60f3b2cf/maintainability)](https://codeclimate.com/github/jungpaeng/sagen/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/0c2a4ad6c9ad60f3b2cf/test_coverage)](https://codeclimate.com/github/jungpaeng/sagen/test_coverage)
+[![Build Status](https://travis-ci.com/jungpaeng/sagen.svg?branch=main)](https://travis-ci.com/jungpaeng/sagen-core)
 
-![min](https://badgen.net/bundlephobia/min/sagen@latest)
-![minzip](https://badgen.net/bundlephobia/minzip/sagen@latest)
-![dependency-count](https://badgen.net/bundlephobia/dependency-count/sagen@latest)
-![tree-shaking](https://badgen.net/bundlephobia/tree-shaking/sagen@latest)
+![min](https://badgen.net/bundlephobia/min/sagen-core@latest)
+![minzip](https://badgen.net/bundlephobia/minzip/sagen-core@latest)
+![dependency-count](https://badgen.net/bundlephobia/dependency-count/sagen-core@latest)
+![tree-shaking](https://badgen.net/bundlephobia/tree-shaking/sagen-core@latest)
 
 [Korean](./readme-kr.md) | [English](./readme.md)
 
 ## ⚙ 설치 방법
 #### npm
 ```bash
-$ npm install --save sagen
+$ npm install --save sagen-core
 ```
 #### yarn
 ```bash
-$ yarn add sagen
+$ yarn add sagen-core
 ```
 
 ## 🏃 시작하기
@@ -29,260 +27,87 @@ $ yarn add sagen
 
 store를 생성해 state를 관리할 수 있습니다!
 
-store는 어떠한 값이든 저장할 수 있으며, `useGlobalStore` hook을 사용하면 `state` 값과 `setState` 함수를 반환받을 수 있습니다.
-
 ```typescript
-import { createStore } from 'sagen';
+import { createStore } from 'sagen-core';
 
-const globalStore = createStore({ num: 0, str: '' });
+const globalStore = createStore(0);
+
+globalStore.setState(1);
+globalStore.getState(); // 1
+
+globalStore.setState(10);
+globalStore.getState(); // 10
 ```
 
 #### state 값 관리
 
-`useGlobalStore` hook을 사용해 값을 관리할 수 있습니다!
-
-상태를 관리하기 위해 `Provider`를 추가하지 않아도 됩니다.
+```html
+<div id="app">
+  <p class="num"></p>
+  <button class="add-num">click me</button>
+</div>
+```
 
 ```jsx
-import React from 'react';
-import { useGlobalStore } from 'sagen';
+import createStore from "sagen-core";
 
-const App = () => {
-  const [state, setState] = useGlobalStore(globalStore);
+const numStore = createStore(0);
 
-  return (
-    <div>
-      <p>number: {state.num}</p>
-      <p>string: {state.str}</p>
-      <button
-        onClick={() => setState(curr => ({ ...curr, num: curr.num + 1 }))}
-      >
-        click me
-      </button>
-    </div>
-  );
-};
+const numText = document.querySelector(".num");
+const addNumButton = document.querySelector(".add-num");
+
+numText.innerHTML = numStore.getState();
+
+addNumButton.addEventListener("click", function () {
+  numStore.setState((curr) => curr + 1);
+});
+
+numStore.onSubscribe((newState, prevState) => {
+  console.log("changed " + prevState + " to " + newState);
+  numText.textContent = newState;
+});
 ```
 
 ## Recipes
 
-#### state selector
+#### getState
 
-state 값을 가져올 때 `selector` 함수를 넘겨줘서 state 값을 가공할 수 있습니다.
+현재 store에 저장되어 있는 값을 가져옵니다.
 
-기본적으로, `===` 연산자로 기존 값과 새로운 값을 비교하기 때문에 아래와 같이 `state`에서 필요한 값만을 사용하는 것이 좋습니다.
+#### setState
+
+store에 저장되어 있는 값을 업데이트합니다.
 
 ```jsx
-import React from 'react';
-import { createStore, useGlobalStore } from 'sagen';
-
-const globalStore = createStore({ num: 0, str: '' });
-const numberSelector = state => state.num;
-const stringSelector = state => state.str;
-
-const NumberChild = () => {
-  const [num, setValue] = useGlobalStore(globalStore, numberSelector);
-  const handleClickBtn = React.useCallback(() => {
-    setValue((curr) => ({
-      ...curr,
-      num: curr.num + 1,
-    }));
-  }, []);
-
-  return (
-    <div className="App">
-      <p>number: {num}</p>
-      <button onClick={handleClickBtn}>Click</button>
-    </div>
-  );
-};
-
-const StringChild = () => {
-  const [str] = useGlobalStore(globalStore, stringSelector);
-
-  return (
-    <div className="App">
-      <p>string: {str}</p>
-    </div>
-  );
-};
-
-const App = () => {
-  const [number, setState] = useGlobalStore(globalStore, numberSelector);
-
-  return (
-    <div>
-      <NumberChild />
-      <StringChild />
-    </div>
-  );
-};
+store.setState(10); // store에 저장된 값을 10으로 변경합니다.
+store.setState(curr => curr + 10); // store에 저장된 값에 10을 더합니다.
 ```
 
-#### customSetState
+#### addAction, dispatch
 
-인자를 `createStore` 함수에 넘길 때 함수의 형태로 넘길 수 있습니다.
-
-내부적으로 첫 번째 인자는 `set` 함수, 두 번째 인자는 `get` 함수를 전달받습니다. 이를 이용해 `customSetState` 함수를 작성할 수 있습니다.
+`addAction` 함수와 `dispatch` 함수를 이용해 `setState`를 커스터마이징 할 수 있습니다.
 
 ```typescript jsx
-const testStore = createStore((set) => {
-  return {
-    state: {
-      num: 1,
-      str: 'test',
-    },
-    customSetState: {
-      setNum: (num: number) => set((prev: any) => ({ ...prev, num })),
-    },
-  };
-});
+const numStore = createStore(0);
 
-const App = () => {
-  const [state, setState] = useGlobalStore(testStore);
-  const { num, str } = state;
-  const { setNum } = setState;
+numStore.addAction(get => ({
+  ADD: num => get() + num,
+  INCREMENT: () => get() + 1,
+}));
 
-  return (
-    <div className="App">
-      <p>number state: {num}</p>
-      <button onClick={() => setNum(100)}>
-        ClickMe
-      </button>
-    </div>
-  );
-};
+numStore.dispatch('INCREMENT'); // 1
+numStore.dispatch('ADD', 10);   // 11
 ```
 
-위와 같이 작성하면 `useGlobalStore`의 두 번째 인자에 `customStore`가 반환됩니다.
+#### React와 사용하기
 
-전달받은 `setNum`에서 prev 값을 이용한 계산을 하고 싶다고 한다면 아래와 같이 작성되어야 합니다.
-
-```typescript jsx
-customSetState: {
-  setNum: (numFunc) => {
-    if (typeof numFunc === 'function') {
-      return set((prev: any) => ({ ...prev, num: numFunc(prev.num) }));
-    } else {
-      return set((prev: any) => ({ ...prev, numFunc }));
-    }
-  }
-}
-```
-
-#### shallowEqual
-
-객체 또는 배열 등 `===`로 비교힐 수 없는 값의 경우, `shallowEqual` 함수를 넘겨서 값을 비교할 수 있습니다.
-
-```jsx
-import React from 'react';
-import { createStore, useGlobalStore, shallowEqual } from 'sagen';
-
-const globalStore = createStore({ num: 0, str: '' });
-const storeSelector = state => state;
-
-const App = () => {
-  const [state, setState] = useGlobalStore(globalStore, storeSelector, shallowEqual);
-
-  return (
-    <div>
-      ...
-    </div>
-  );
-};
-```
-
-#### React 없이 사용하기
-
-`sagen`의 `createStore`는 React에 종속되어 있지 않습니다. 사용법 역시 React에서 사용하는 것과 동일합니다.
-
-## Middleware
-
-`sagen`은 데이터를 저장하는 방법 등에 대해 관리할 수 있는 `middleware`를 제공합니다.
-
-`createStore`에서 함수를 받게 될 경우, `getState` 값과 `setState` 값을 인자로 넘겨 실행시키며, 이를 이용해 middleware를 작성할 수 있습니다.
-
-#### redux middleware
-
-`redux`와 비슷한 방법으로 state를 관리하려면 `redux` middleware를 사용하면 됩니다.
-
-```jsx
-export function testReducer(state, action) {
-  switch (action.type) {
-    case 'INCREMENT':
-      return state + 1;
-    case 'DECREMENT':
-      return state - 1;
-    default:
-      return state;
-  }
-};
-
-const reduxStore = createStore(redux(testReducer, 0));
-```
-
-`redux` 함수의 첫 번째 함수로 `reducer` 함수, 두 번째 인자로 `defaultValue`를 넘겨주면 됩니다.
-
-이 store를 `useGlobalStore`로 넘기게 된다면 `[state, dispatch]`를 반환합니다.
-`useReducer` hook을 사용해본 경험이 있다면 더 빠르게 적용해볼 수 있을 것입니다.
-
-```jsx
-const App = () => {
-  const [state, dispatch] = useGlobalStore(reduxStore);
-
-  return (
-    <div className="App">
-      <p>state: {state}</p>
-      <button
-        onClick={() => dispatch({ type: 'INCREMENT' })}
-      >
-        ClickMe
-      </button>
-    </div>
-  );
-}
-```
-
-#### persist middleware
-
-storage에 데이터를 저장해 값을 불러올 수 있습니다.
-
-```jsx
-const globalStore = createStore(
-  persist(
-    {
-      name: 'local-persist-test',
-      storage: localStorage,
-    },
-    redux(testReducer, 0),
-  ),
-);
-```
-
-#### redux devtools
-
-'redux devtools' 확장 프로그램을 사용해 값의 변화를 확인할 수 있습니다.
-
-```jsx
-const globalStore = createStore(
-  devtools(
-    persist(
-      {
-        name: 'local-persist-test',
-        storage: localStorage,
-      },
-      redux(testReducer, 0),
-    ),
-    'prefix',
-  )
-);
-```
+[sagen](https://www.npmjs.com/package/sagen) 라이브러리를 사용해 React에서 사용할 수 있습니다.
 
 ## 📜 License
-sagen is released under the [MIT license](https://github.com/jungpaeng/react-manage-global-state/blob/main/LICENSE).
+sagen-core is released under the [MIT license](https://github.com/jungpaeng/sagen-core/blob/main/LICENSE).
 
 ```
-Copyright (c) 2020 jungpaeng
+Copyright (c) 2021 jungpaeng
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

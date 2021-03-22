@@ -2,293 +2,112 @@
   <img width="300" alt="sagen Logo" src="https://user-images.githubusercontent.com/26024412/101279836-780ddb80-3808-11eb-9ff5-69693c56373e.png" style="max-width: 100%;"><br/>
 </h1>
 
-[![Build Status](https://travis-ci.com/jungpaeng/sagen.svg?branch=main)](https://travis-ci.com/jungpaeng/sagen)
-[![Maintainability](https://api.codeclimate.com/v1/badges/0c2a4ad6c9ad60f3b2cf/maintainability)](https://codeclimate.com/github/jungpaeng/sagen/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/0c2a4ad6c9ad60f3b2cf/test_coverage)](https://codeclimate.com/github/jungpaeng/sagen/test_coverage)
+[![Build Status](https://travis-ci.com/jungpaeng/sagen.svg?branch=main)](https://travis-ci.com/jungpaeng/sagen-core)
 
-![min](https://badgen.net/bundlephobia/min/sagen@latest)
-![minzip](https://badgen.net/bundlephobia/minzip/sagen@latest)
-![dependency-count](https://badgen.net/bundlephobia/dependency-count/sagen@latest)
-![tree-shaking](https://badgen.net/bundlephobia/tree-shaking/sagen@latest)
+![min](https://badgen.net/bundlephobia/min/sagen-core@latest)
+![minzip](https://badgen.net/bundlephobia/minzip/sagen-core@latest)
+![dependency-count](https://badgen.net/bundlephobia/dependency-count/sagen-core@latest)
+![tree-shaking](https://badgen.net/bundlephobia/tree-shaking/sagen-core@latest)
 
-[Korean](https://github.com/jungpaeng/sagen/blob/main/readme-kr.md) | [English](https://github.com/jungpaeng/sagen/blob/main/readme.md)  
+[Korean](./readme-kr.md) | [English](./readme.md)
 
-## ⚙ Installation
+## ⚙ Install
 #### npm
 ```bash
-$ npm install --save sagen
+$ npm install --save sagen-core
 ```
 #### yarn
 ```bash
-$ yarn add sagen
+$ yarn add sagen-core
 ```
 
-## 🏃 Quick Start
+## 🏃 Sagen
 
-#### create store
-
+#### Create a store
 
 You can create a store to manage the state!
 
-The store can store any value, and if you use the `useGlobalStore` hook,
-you can return the `state` value and the `setState` function.
-
 ```typescript
-import { createStore } from 'sagen';
+import { createStore } from 'sagen-core';
 
-const globalStore = createStore({ num: 0, str: '' });
+const globalStore = createStore(0);
+
+globalStore.setState(1);
+globalStore.getState(); // 1
+
+globalStore.setState(10);
+globalStore.getState(); // 10
 ```
 
-#### management state
+#### management of state value
 
-You can manage values using the `useGlobalStore` hook!
-
-You don't need to add `Provider` to manage state.
+```html
+<div id="app">
+  <p class="num"></p>
+  <button class="add-num">click me</button>
+</div>
+```
 
 ```jsx
-import React from 'react';
-import { useGlobalStore } from 'sagen';
+import createStore from "sagen-core";
 
-const App = () => {
-  const [state, setState] = useGlobalStore(globalStore);
+const numStore = createStore(0);
 
-  return (
-    <div>
-      <p>number: {state.num}</p>
-      <p>string: {state.str}</p>
-      <button
-        onClick={() => setState(curr => ({ ...curr, num: curr.num + 1 }))}
-      >
-        click me
-      </button>
-    </div>
-  );
-};
+const numText = document.querySelector(".num");
+const addNumButton = document.querySelector(".add-num");
+
+numText.innerHTML = numStore.getState();
+
+addNumButton.addEventListener("click", function () {
+  numStore.setState((curr) => curr + 1);
+});
+
+numStore.onSubscribe((newState, prevState) => {
+  console.log("changed " + prevState + " to " + newState);
+  numText.textContent = newState;
+});
 ```
 
 ## Recipes
 
-#### state selector
+#### getState
 
+Gets the value currently stored in the store.
 
-When getting the state value, you can process the state value by passing the `selector` function.
+#### setState
 
-Basically, since the `===` operator compares the old value and the new value,
-it is recommended to use only the required value in `state` as shown below.
+Update the value stored in the store.
 
 ```jsx
-import React from 'react';
-import { createStore, useGlobalStore } from 'sagen';
-
-const globalStore = createStore({ num: 0, str: '' });
-const numberSelector = state => state.num;
-const stringSelector = state => state.str;
-
-const NumberChild = () => {
-  const [num, setValue] = useGlobalStore(globalStore, numberSelector);
-  const handleClickBtn = React.useCallback(() => {
-    setValue((curr) => ({
-      ...curr,
-      num: curr.num + 1,
-    }));
-  }, []);
-
-  return (
-    <div className="App">
-      <p>number: {num}</p>
-      <button onClick={handleClickBtn}>Click</button>
-    </div>
-  );
-};
-
-const StringChild = () => {
-  const [str] = useGlobalStore(globalStore, stringSelector);
-
-  return (
-    <div className="App">
-      <p>string: {str}</p>
-    </div>
-  );
-};
-
-const App = () => {
-  const [number, setState] = useGlobalStore(globalStore, numberSelector);
-
-  return (
-    <div>
-      <NumberChild />
-      <StringChild />
-    </div>
-  );
-};
+store.setState(10); // Change the value stored in store to 10.
+store.setState(curr => curr + 10); // Add 10 to the value stored in store.
 ```
 
-#### customSetState
+#### addAction, dispatch
 
-When passing an argument to the `createStore` function, it can be passed in the form of a function.
-
-Internally, the first argument is a `set` function and the second argument is a `get` function. You can use this to write a `customSetState` function.
+You can customize `setState` using `addAction` and `dispatch` functions.
 
 ```typescript jsx
-const testStore = createStore((set) => {
-  return {
-    state: {
-      num: 1,
-      str: 'test',
-    },
-    customSetState: {
-      setNum: (num: number) => set((prev: any) => ({ ...prev, num })),
-    },
-  };
-});
+const numStore = createStore(0);
 
-const App = () => {
-  const [state, setState] = useGlobalStore(testStore);
-  const { num, str } = state;
-  const { setNum } = setState;
+numStore.addAction(get => ({
+  ADD: num => get() + num,
+  INCREMENT: () => get() + 1,
+}));
 
-  return (
-    <div className="App">
-      <p>number state: {num}</p>
-      <button onClick={() => setNum(100)}>
-        ClickMe
-      </button>
-    </div>
-  );
-};
+numStore.dispatch('INCREMENT'); // 1
+numStore.dispatch('ADD', 10);   // 11
 ```
 
-If written as above, `customStore` is returned as the second parameter of `useGlobalStore`.
+#### Using with React
 
-If you want to calculate using the prev value in the received `setNum`, it should be written as follows.
-
-```typescript jsx
-customSetState: {
-  setNum: (numFunc) => {
-    if (typeof numFunc === 'function') {
-      return set((prev: any) => ({ ...prev, num: numFunc(prev.num) }));
-    } else {
-      return set((prev: any) => ({ ...prev, numFunc }));
-    }
-  }
-}
-```
-
-#### shallowEqual
-
-For values that cannot be compared with `===`, such as objects or arrays,
-you can pass the `shallowEqual` function to compare the values.
-
-```jsx
-import React from 'react';
-import { createStore, useGlobalStore, shallowEqual } from 'sagen';
-
-const globalStore = createStore({ num: 0, str: '' });
-const storeSelector = state => state;
-
-const App = () => {
-  const [state, setState] = useGlobalStore(globalStore, storeSelector, shallowEqual);
-
-  return (
-    <div>
-      ...
-    </div>
-  );
-};
-```
-
-#### Use sagen without React
-
-The `createStore` of `sagen` is not dependent on React. Usage is also the same as in React.
-
-## Middleware
-
-`sagen` provides `middleware` to manage how to store data, etc.
-
-When a function is received from `createStore`,
-it is executed by passing `getState` and `setState` values as arguments, and middleware can be created using them.
-
-#### redux middleware
-
-To manage state in a similar way to `redux`, you can use `redux` middleware.
-
-```jsx
-export function testReducer(state, action) {
-  switch (action.type) {
-    case 'INCREMENT':
-      return state + 1;
-    case 'DECREMENT':
-      return state - 1;
-    default:
-      return state;
-  }
-};
-
-const reduxStore = createStore(redux(testReducer, 0));
-```
-
-Pass the `reducer` function as the first function of the `redux` function and the `defaultValue` as the second argument.
-
-If this store is passed to `useGlobalStore`, it will return `[state, dispatch]`.
-If you have used the `useReducer` hook, you will be able to apply it faster.
-
-```jsx
-const App = () => {
-  const [state, dispatch] = useGlobalStore(reduxStore);
-
-  return (
-    <div className="App">
-      <p>state: {state}</p>
-      <button
-        onClick={() => dispatch({ type: 'INCREMENT' })}
-      >
-        ClickMe
-      </button>
-    </div>
-  );
-}
-```
-
-#### persist middleware
-
-You can store data in storage and load values.
-
-```jsx
-const globalStore = createStore(
-  persist(
-    {
-      name: 'local-persist-test',
-      storage: localStorage,
-    },
-    redux(testReducer, 0),
-  ),
-);
-```
-
-#### redux devtools
-
-You can use the 'redux devtools' extension to see the value change.
-
-```jsx
-const globalStore = createStore(
-  devtools(
-    persist(
-      {
-        name: 'local-persist-test',
-        storage: localStorage,
-      },
-      redux(testReducer, 0),
-    ),
-    'prefix',
-  )
-);
-```
+You can use it in React using the [sagen](https://www.npmjs.com/package/sagen) library.
 
 ## 📜 License
-sagen is released under the [MIT license](https://github.com/jungpaeng/react-manage-global-state/blob/main/LICENSE).
+sagen-core is released under the [MIT license](https://github.com/jungpaeng/sagen-core/blob/main/LICENSE).
 
 ```
-Copyright (c) 2020 jungpaeng
+Copyright (c) 2021 jungpaeng
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
