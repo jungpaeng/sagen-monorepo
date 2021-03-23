@@ -1,6 +1,9 @@
+import { isFunction } from '../lib';
+
 export function createStore<State = any>(defaultState: State) {
   type AddActionValue = (...rest: any) => State;
   type SubscribeEvent = (newState: State, prevState: State) => void;
+  type SetValueFunction = (currValue: State) => State;
 
   let state = defaultState as State;
   let action: Record<string, AddActionValue> = {};
@@ -11,12 +14,12 @@ export function createStore<State = any>(defaultState: State) {
     return state;
   }
 
-  function setState(nextState: State) {
+  function setState(nextState: State | SetValueFunction) {
     const prevState = getState();
-    state = nextState;
+    state = isFunction(nextState) ? (nextState as SetValueFunction)(state) : (nextState as State);
 
     subscribeEventList.forEach(function (subscribe) {
-      subscribe(nextState, prevState);
+      subscribe(state, prevState);
     });
   }
 
