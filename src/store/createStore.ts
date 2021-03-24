@@ -1,48 +1,60 @@
 import { isFunction } from '../lib';
 
+type SetValueFunction<State = any> = (currValue: State) => State;
+type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
+
 export type AddActionValue<State = any> = (...rest: any) => State;
-export type ReturnCreateStore = ReturnType<typeof createStore>;
 
-export function createStore<State = any>(defaultState: State) {
-  type SubscribeEvent = (newState: State, prevState: State) => void;
-  type SetValueFunction = (currValue: State) => State;
+type AddActionValueRecord<Key extends string | number | symbol, State = any> = Record<
+  Key,
+  AddActionValue<State>
+>;
 
+export interface CreateStore<State = any> {
+  getState(): State;
+  setState(nextState: State | SetValueFunction<State>): void;
+  setAction<ActionMaps extends AddActionValueRecord<string, State>>(
+    actionFunc: (getter: CreateStore['getState']) => ActionMaps,
+  ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;
+  onSubscribe(subscribeEvent: SubscribeEvent<State>): () => void;
+}
+
+export function createStore<State = any>(defaultState: State): CreateStore<State> {
   let state = defaultState as State;
   let action: Record<string, AddActionValue<State>> = {};
 
-  const subscribeEventList: SubscribeEvent[] = [];
+  const subscribeEventList: SubscribeEvent<State>[] = [];
 
   function getState() {
     return state;
   }
 
-  function setState(nextState: State | SetValueFunction) {
+  const setState: CreateStore<State>['setState'] = function (nextState) {
     const prevState = getState();
-    state = isFunction(nextState) ? (nextState as SetValueFunction)(state) : (nextState as State);
+    state = isFunction(nextState)
+      ? (nextState as SetValueFunction<State>)(state)
+      : (nextState as State);
 
     subscribeEventList.forEach(function (subscribe) {
       subscribe(state, prevState);
     });
-  }
+  };
 
-  function onSubscribe(subscribeEvent: SubscribeEvent) {
+  const onSubscribe: CreateStore<State>['onSubscribe'] = function (subscribeEvent) {
     subscribeEventList.push(subscribeEvent);
 
     return function () {
       const idx = subscribeEventList.indexOf(subscribeEvent);
       subscribeEventList.splice(idx, 1);
     };
-  }
+  };
 
-  function setAction<ActionMaps extends Record<string, AddActionValue<State>>>(
-    actionFunc: (getter: typeof getState) => ActionMaps,
-  ) {
-    type ReturnActionFuncKey = keyof ReturnType<typeof actionFunc>;
-    const resActionFunc: Record<ReturnActionFuncKey, AddActionValue<State>> = actionFunc(getState);
+  const setAction: CreateStore<State>['setAction'] = function (actionFunc) {
+    const resActionFunc = actionFunc(getState);
     action = resActionFunc;
 
     return resActionFunc;
-  }
+  };
 
   return {
     getState,

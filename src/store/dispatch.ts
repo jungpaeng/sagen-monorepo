@@ -1,6 +1,6 @@
-import { AddActionValue, ReturnCreateStore } from './createStore';
+import { AddActionValue, CreateStore } from './createStore';
 
-export function createDispatch(store: ReturnCreateStore) {
+export function createDispatch<State = any>(store: CreateStore<State>) {
   const { setState } = store;
 
   return function (actionFunc: AddActionValue, value?: any) {
