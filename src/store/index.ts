@@ -1,1 +1,2 @@
-export * from './_createStore';
+export * from './createStore';
+export * from './dispatch';
