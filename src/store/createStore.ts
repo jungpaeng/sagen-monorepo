@@ -1,77 +1,65 @@
 import { isFunction } from '../lib';
 
-export type SetValueFunction<T = any> = (currValue: T) => T;
-export type NextState<T> = T | SetValueFunction<T>;
+type SetValueFunction<State = any> = (currValue: State) => State;
+type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
 
-export type StoreGetState<T = any> = () => T;
-export type StoreSetState<T = any> = (newValue: NextState<T>) => void;
+export type AddActionValue<State = any> = (...rest: any) => State;
 
-export type ReducerAction = {
-  type: string;
-  [key: string]: any;
-};
+type AddActionValueRecord<Key extends string | number | symbol, State = any> = Record<
+  Key,
+  AddActionValue<State>
+>;
 
-export type DispatchType = (action: ReducerAction) => void;
-
-export interface CustomStore<State, SetState> {
-  state: State;
-  customSetState: SetState;
+export interface CreateStore<State = any> {
+  getState(): State;
+  setState(nextState: State | SetValueFunction<State>): void;
+  setAction<ActionMaps extends AddActionValueRecord<string, State>>(
+    actionFunc: (getter: CreateStore['getState']) => ActionMaps,
+  ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;
+  onSubscribe(subscribeEvent: SubscribeEvent<State>): () => void;
 }
 
-export type StateStore<State> = CustomStore<State, StoreSetState<State>>;
-export type ReducerStore<State> = CustomStore<State, DispatchType>;
+export function createStore<State = any>(defaultState: State): CreateStore<State> {
+  let state = defaultState as State;
+  let action: Record<string, AddActionValue<State>> = {};
 
-export type CommonStore<State> = StateStore<State> | ReducerStore<State>;
+  const subscribeEventList: SubscribeEvent<State>[] = [];
 
-export type StoreReturnType<State, ReturnType = CustomStore<State, any>> = (
-  setState: StoreSetState<State>,
-  getState: StoreGetState<State>,
-) => ReturnType;
+  function getState() {
+    return state;
+  }
 
-export type ReducerReturnType<State> = StoreReturnType<State, ReducerStore<State>>;
+  const setState: CreateStore<State>['setState'] = function (nextState) {
+    const prevState = getState();
+    state = isFunction(nextState)
+      ? (nextState as SetValueFunction<State>)(state)
+      : (nextState as State);
 
-export interface CreateStoreReturnValue<State> {
-  getState: StoreGetState<State>;
-  setState: StoreSetState<State>;
-  customSetState?: (state: any) => void;
-  onChange: (callback: (newState: State, prevState: State) => void) => () => void;
-}
-
-const createStore = <State = any>(
-  createState: State | StoreReturnType<State, CommonStore<State>>,
-): CreateStoreReturnValue<State> => {
-  let state: State;
-  const callbackList: Array<(newState: State, prevState: State) => void> = [];
-
-  const getState = () => state;
-  const setState = (nextState: State | SetValueFunction<State>) => {
-    const prevState = state;
-    state = isFunction(nextState) ? (nextState as Function)(state) : nextState;
-    callbackList.forEach((callback) => callback(state, prevState));
+    subscribeEventList.forEach(function (subscribe) {
+      subscribe(state, prevState);
+    });
   };
 
-  // state changed callback
-  const onChange = (callback: (nextState: any, prevState: any) => void) => {
-    callbackList.push(callback);
+  const onSubscribe: CreateStore<State>['onSubscribe'] = function (subscribeEvent) {
+    subscribeEventList.push(subscribeEvent);
 
-    return () => {
-      // remove added callback
-      callbackList.splice(callbackList.indexOf(callback), 1);
+    return function () {
+      const idx = subscribeEventList.indexOf(subscribeEvent);
+      subscribeEventList.splice(idx, 1);
     };
   };
 
-  if (isFunction(createState)) {
-    const { state: createdState, ...rest } = (createState as ReducerReturnType<State>)(
-      setState,
-      getState,
-    );
-    state = createdState;
+  const setAction: CreateStore<State>['setAction'] = function (actionFunc) {
+    const resActionFunc = actionFunc(getState);
+    action = resActionFunc;
 
-    return { getState, setState, onChange, ...rest };
-  } else {
-    state = createState as State;
-    return { getState, setState, onChange };
-  }
-};
+    return resActionFunc;
+  };
 
-export default createStore;
+  return {
+    getState,
+    setState,
+    setAction,
+    onSubscribe,
+  };
+}
