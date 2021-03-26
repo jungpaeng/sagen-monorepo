@@ -1,2 +1,2 @@
 export * from './createStore';
-export * from './dispatch';
+export * from './createDispatch';
