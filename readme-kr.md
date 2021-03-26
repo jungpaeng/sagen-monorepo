@@ -89,14 +89,15 @@ store.setState(curr => curr + 10); // store에 저장된 값에 10을 더합니�
 
 ```typescript jsx
 const numStore = createStore(0);
+const numDispatch = createDispatch(numStore);
 
 numStore.addAction(get => ({
   ADD: num => get() + num,
   INCREMENT: () => get() + 1,
 }));
 
-numStore.dispatch('INCREMENT'); // 1
-numStore.dispatch('ADD', 10);   // 11
+numDispatch('INCREMENT'); // 1
+numDispatch('ADD', 10);   // 11
 ```
 
 #### React와 사용하기

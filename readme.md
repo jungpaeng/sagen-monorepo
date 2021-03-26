@@ -89,14 +89,15 @@ You can customize `setState` using `addAction` and `dispatch` functions.
 
 ```typescript jsx
 const numStore = createStore(0);
+const numDispatch = createDispatch(numStore);
 
 numStore.addAction(get => ({
   ADD: num => get() + num,
   INCREMENT: () => get() + 1,
 }));
 
-numStore.dispatch('INCREMENT'); // 1
-numStore.dispatch('ADD', 10);   // 11
+numDispatch('INCREMENT'); // 1
+numDispatch('ADD', 10);   // 11
 ```
 
 #### Using with React
