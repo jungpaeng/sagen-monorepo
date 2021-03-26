@@ -20,6 +20,10 @@ export interface CreateStore<State = any> {
 }
 
 export function createStore<State = any>(defaultState: State): CreateStore<State> {
+  if (typeof defaultState === 'function') {
+    throw new Error('Passing a function as an argument to createStore() is not allowed.');
+  }
+
   let state = defaultState as State;
   let action: Record<string, AddActionValue<State>> = {};
 
