@@ -54,10 +54,8 @@ export function createStore<State = any>(defaultState: State): CreateStore<State
   };
 
   const setAction: CreateStore<State>['setAction'] = function (actionFunc) {
-    const resActionFunc = actionFunc(getState);
-    action = resActionFunc;
-
-    return resActionFunc;
+    action = actionFunc(getState);
+    return <AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>>action;
   };
 
   return {
