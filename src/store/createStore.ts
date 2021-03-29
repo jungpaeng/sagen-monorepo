@@ -1,5 +1,10 @@
 import { isFunction } from '../lib';
 
+export type StoreEnhancerStoreCreator<State = any> = (defaultState: State) => CreateStore<State>;
+export type StoreEnhancer<State = any> = (
+  next: StoreEnhancerStoreCreator<State>,
+) => StoreEnhancerStoreCreator<State>;
+
 type SetValueFunction<State = any> = (currValue: State) => State;
 type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
 
@@ -19,10 +24,13 @@ export interface CreateStore<State = any> {
   onSubscribe(subscribeEvent: SubscribeEvent<State>): () => void;
 }
 
-export function createStore<State = any>(defaultState: State): CreateStore<State> {
-  if (typeof defaultState === 'function') {
+export function createStore<State = any>(
+  defaultState: State,
+  enhancer?: StoreEnhancer<State>,
+): CreateStore<State> {
+  if (typeof defaultState === 'function')
     throw new Error('Passing a function as an argument to createStore() is not allowed.');
-  }
+  if (typeof enhancer === 'function') return enhancer(createStore)(defaultState);
 
   let state = defaultState as State;
   let action: Record<string, AddActionValue<State>> = {};
