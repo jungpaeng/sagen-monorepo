@@ -9,21 +9,21 @@
 ![dependency-count](https://badgen.net/bundlephobia/dependency-count/sagen-core@latest)
 ![tree-shaking](https://badgen.net/bundlephobia/tree-shaking/sagen-core@latest)
 
-[Korean](./readme-kr.md) | [English](./readme.md)
+[Korean](https://github.com/jungpaeng/sagen-core/blob/main/readme-kr.md) | [English](https://github.com/jungpaeng/sagen-core/blob/main/readme.md)
 
 ## ⚙ 설치 방법
-#### npm
+### npm
 ```bash
 $ npm install --save sagen-core
 ```
-#### yarn
+### yarn
 ```bash
 $ yarn add sagen-core
 ```
 
 ## 🏃 시작하기
 
-#### store 만들기
+### store 만들기
 
 store를 생성해 state를 관리할 수 있습니다!
 
@@ -39,7 +39,7 @@ globalStore.setState(10);
 globalStore.getState(); // 10
 ```
 
-#### state 값 관리
+### state 값 관리
 
 ```html
 <div id="app">
@@ -49,7 +49,7 @@ globalStore.getState(); // 10
 ```
 
 ```jsx
-import createStore from "sagen-core";
+import { createStore } from "sagen-core";
 
 const numStore = createStore(0);
 
@@ -70,11 +70,11 @@ numStore.onSubscribe((newState, prevState) => {
 
 ## Recipes
 
-#### getState
+### getState
 
 현재 store에 저장되어 있는 값을 가져옵니다.
 
-#### setState
+### setState
 
 store에 저장되어 있는 값을 업데이트합니다.
 
@@ -83,24 +83,54 @@ store.setState(10); // store에 저장된 값을 10으로 변경합니다.
 store.setState(curr => curr + 10); // store에 저장된 값에 10을 더합니다.
 ```
 
-#### addAction, dispatch
+### setAction, Reducer 패턴
 
-`addAction` 함수와 `dispatch` 함수를 이용해 `setState`를 커스터마이징 할 수 있습니다.
+`setAction` 함수를 이용해 `setState`를 커스터마이징 할 수 있습니다.
 
 ```typescript jsx
+import { createStore, createDispatch } from 'sagen-core';
+
 const numStore = createStore(0);
 const numDispatch = createDispatch(numStore);
 
-numStore.addAction(get => ({
-  ADD: num => get() + num,
+const action = numStore.setAction(get => ({
+  ADD: (num) => get() + num,
   INCREMENT: () => get() + 1,
 }));
 
-numDispatch('INCREMENT'); // 1
-numDispatch('ADD', 10);   // 11
+numDispatch(action.INCREMENT); // 1
+numDispatch(action.ADD, 10);   // 11
 ```
 
-#### React와 사용하기
+### middleware for sagen-core
+
+**sagen은 Redux의 미들웨어를 호환합니다.**
+
+다음은 redux의 간단한 logger middleware 입니다.
+
+```ts
+import { createStore, composeMiddleware } from 'sagen-core';
+
+const loggerMiddleware = store => next => action => {
+  console.log('현재 상태', store.getState());
+  console.log('액션', action);
+  next(action);
+  console.log('다음 상태', store.getState());
+}
+
+const store = createStore(0, composeMiddleware(loggerMiddleware));
+store.setState(1);
+```
+
+console log
+
+```console
+현재 상태,  0
+액션, 1
+다음 상태,  1
+```
+
+### React와 사용하기
 
 [sagen](https://www.npmjs.com/package/sagen) 라이브러리를 사용해 React에서 사용할 수 있습니다.
 
