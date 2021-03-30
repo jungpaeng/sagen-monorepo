@@ -1,5 +1,5 @@
 import { compose } from '../lib';
-import { CreateStore, StoreEnhancer, StoreEnhancerStoreCreator } from './createStore';
+import { CreateStore, StoreEnhancerStoreCreator } from './createStore';
 
 type MiddlewareAPI<State = any> = {
   getState: CreateStore<State>['getState'];
