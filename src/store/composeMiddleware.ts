@@ -5,7 +5,11 @@ type MiddlewareAPI<State = any> = {
   getState: CreateStore<State>['getState'];
   setState: CreateStore<State>['setState'];
 };
-export type Middleware<State = any> = (api: MiddlewareAPI<State>) => StoreEnhancer<State>;
+type MiddlewareChain<State = any> = (
+  next: CreateStore<State>['setState'],
+) => (action: State) => void;
+
+export type Middleware<State = any> = (api: MiddlewareAPI<State>) => MiddlewareChain<State>;
 
 export const composeMiddleware = function <State = any>(...middlewares: Middleware<State>[]) {
   return function (createStore: StoreEnhancerStoreCreator<State>) {

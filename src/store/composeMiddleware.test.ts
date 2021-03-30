@@ -3,7 +3,7 @@ import { composeMiddleware, Middleware } from './composeMiddleware';
 
 describe('composeMiddleware', () => {
   it('warns when setState during middleware setup', () => {
-    const setStateMiddleware: Middleware = function (store) {
+    const setStateMiddleware: Middleware<number> = function (store) {
       store.setState(100);
       return (next) => (action) => next(action);
     };
@@ -12,7 +12,7 @@ describe('composeMiddleware', () => {
   });
 
   it('wraps dispatch method with middleware once', () => {
-    const testMiddleware = function (spyMethod: jest.Mock): Middleware {
+    const testMiddleware = function (spyMethod: jest.Mock): Middleware<number> {
       return (store) => {
         spyMethod(store);
         return (next) => (action) => next(action);
