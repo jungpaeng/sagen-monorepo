@@ -9,21 +9,21 @@
 ![dependency-count](https://badgen.net/bundlephobia/dependency-count/sagen-core@latest)
 ![tree-shaking](https://badgen.net/bundlephobia/tree-shaking/sagen-core@latest)
 
-[Korean](./readme-kr.md) | [English](./readme.md)
+[Korean](https://github.com/jungpaeng/sagen-core/blob/main/readme-kr.md) | [English](https://github.com/jungpaeng/sagen-core/blob/main/readme.md)
 
 ## ⚙ Install
-#### npm
+### npm
 ```bash
 $ npm install --save sagen-core
 ```
-#### yarn
+### yarn
 ```bash
 $ yarn add sagen-core
 ```
 
 ## 🏃 Sagen
 
-#### Create a store
+### Create a store
 
 You can create a store to manage the state!
 
@@ -39,7 +39,7 @@ globalStore.setState(10);
 globalStore.getState(); // 10
 ```
 
-#### management of state value
+### management of state value
 
 ```html
 <div id="app">
@@ -49,7 +49,7 @@ globalStore.getState(); // 10
 ```
 
 ```jsx
-import createStore from "sagen-core";
+import { createStore } from "sagen-core";
 
 const numStore = createStore(0);
 
@@ -70,11 +70,11 @@ numStore.onSubscribe((newState, prevState) => {
 
 ## Recipes
 
-#### getState
+### getState
 
 Gets the value currently stored in the store.
 
-#### setState
+### setState
 
 Update the value stored in the store.
 
@@ -83,24 +83,54 @@ store.setState(10); // Change the value stored in store to 10.
 store.setState(curr => curr + 10); // Add 10 to the value stored in store.
 ```
 
-#### addAction, dispatch
+### setAction, Reducer pattern
 
-You can customize `setState` using `addAction` and `dispatch` functions.
+You can customize `setState` using `setAction` functions.
 
 ```typescript jsx
+import { createStore, createDispatch } from 'sagen-core';
+
 const numStore = createStore(0);
 const numDispatch = createDispatch(numStore);
 
-numStore.addAction(get => ({
-  ADD: num => get() + num,
+const action = numStore.setAction(get => ({
+  ADD: (num) => get() + num,
   INCREMENT: () => get() + 1,
 }));
 
-numDispatch('INCREMENT'); // 1
-numDispatch('ADD', 10);   // 11
+numDispatch(action.INCREMENT); // 1
+numDispatch(action.ADD, 10);   // 11
 ```
 
-#### Using with React
+### middleware for sagen-core
+
+**sagen is compatible with Redux middleware.**
+
+The following is a simple redux logger middleware.
+
+```ts
+import { createStore, composeMiddleware } from 'sagen-core';
+
+const loggerMiddleware = store => next => action => {
+  console.log('current state', store.getState());
+  console.log('action', action);
+  next(action);
+  console.log('next state', store.getState());
+}
+
+const store = createStore(0, composeMiddleware(loggerMiddleware));
+store.setState(1);
+```
+
+console log
+
+```console
+current state,  0
+action, 1
+next state,  1
+```
+
+### Using with React
 
 You can use it in React using the [sagen](https://www.npmjs.com/package/sagen) library.
 
