@@ -1,6 +1,6 @@
 {
   "name": "sagen-core",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Management global state with out provider",
   "main": "index.js",
   "module": "index.esm.js",
