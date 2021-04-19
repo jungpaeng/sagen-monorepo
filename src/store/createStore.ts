@@ -5,8 +5,8 @@ export type StoreEnhancer<State = any> = (
   next: StoreEnhancerStoreCreator<State>,
 ) => StoreEnhancerStoreCreator<State>;
 
-type SetValueFunction<State = any> = (currValue: State) => State;
-type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
+export type SetValueFunction<State = any> = (currValue: State) => State;
+export type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
 
 export type AddActionValue<State = any> = (...rest: any) => State;
 
