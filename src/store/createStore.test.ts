@@ -8,15 +8,28 @@ describe('createStore', () => {
       const store = createStore(0);
       const methods = Object.keys(store).filter((key) => key);
 
-      expect(methods.length).toBe(4);
+      expect(methods.length).toBe(5);
       expect(methods).toContain('getState');
       expect(methods).toContain('setState');
+      expect(methods).toContain('resetState');
       expect(methods).toContain('setAction');
       expect(methods).toContain('onSubscribe');
     });
 
     it('throws if defaultState is a function', () => {
       expect(() => createStore(() => null)).toThrow();
+    });
+  });
+
+  describe('setter', () => {
+    it('should be reset state', () => {
+      const store = createStore(0);
+
+      store.setState(100);
+      expect(store.getState()).toBe(100);
+
+      store.resetState();
+      expect(store.getState()).toBe(0);
     });
   });
 

@@ -15,14 +15,15 @@ type AddActionValueRecord<Key extends string | number | symbol, State = any> = R
   AddActionValue<State>
 >;
 
-export interface CreateStore<State = any> {
+export type CreateStore<State = any> = {
   getState(): State;
+  resetState(): void;
   setState(nextState: State | SetValueFunction<State>): void;
   setAction<ActionMaps extends AddActionValueRecord<string, State>>(
     actionFunc: (getter: CreateStore<State>['getState']) => ActionMaps,
   ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;
   onSubscribe(subscribeEvent: SubscribeEvent<State>): () => void;
-}
+};
 
 export function createStore<State = any>(
   defaultState: State,
@@ -52,6 +53,10 @@ export function createStore<State = any>(
     });
   };
 
+  function resetState() {
+    setState(defaultState);
+  }
+
   const onSubscribe: CreateStore<State>['onSubscribe'] = function (subscribeEvent) {
     subscribeEventList.push(subscribeEvent);
 
@@ -69,6 +74,7 @@ export function createStore<State = any>(
   return {
     getState,
     setState,
+    resetState,
     setAction,
     onSubscribe,
   };
