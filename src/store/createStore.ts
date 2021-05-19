@@ -19,7 +19,7 @@ export interface CreateStore<State = any> {
   getState(): State;
   setState(nextState: State | SetValueFunction<State>): void;
   setAction<ActionMaps extends AddActionValueRecord<string, State>>(
-    actionFunc: (getter: CreateStore['getState']) => ActionMaps,
+    actionFunc: (getter: CreateStore<State>['getState']) => ActionMaps,
   ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;
   onSubscribe(subscribeEvent: SubscribeEvent<State>): () => void;
 }
