@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "sagen-monorepo",
+  "version": "1.0.0",
+  "repository": "https://github.com/jungpaeng/sagen-monorepo.git",
+  "author": "jungpaeng <meis1541@naver.com>",
+  "license": "MIT",
+  "workspaces": ["packages/*"]
+}
