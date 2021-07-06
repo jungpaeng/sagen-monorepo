@@ -36,21 +36,25 @@ export function createStore<State = any>(
   let state = defaultState as State;
   let action: Record<string, AddActionValue<State>> = {};
 
-  const subscribeEventList: SubscribeEvent<State>[] = [];
+  const subscribeEventListeners: Set<SubscribeEvent<State>> = new Set();
 
   function getState() {
     return state;
   }
 
-  const setState: CreateStore<State>['setState'] = function (nextState) {
-    const prevState = getState();
-    state = isFunction(nextState)
-      ? (nextState as SetValueFunction<State>)(state)
-      : (nextState as State);
+  const setState: CreateStore<State>['setState'] = function (partial) {
+    const nextState = isFunction(partial)
+      ? (partial as SetValueFunction<State>)(state)
+      : (partial as State);
 
-    subscribeEventList.forEach(function (subscribe) {
-      subscribe(state, prevState);
-    });
+    if (nextState !== getState()) {
+      const prevState = getState();
+      state = nextState;
+
+      subscribeEventListeners.forEach(function (subscribe) {
+        subscribe(state, prevState);
+      });
+    }
   };
 
   function resetState() {
@@ -58,11 +62,10 @@ export function createStore<State = any>(
   }
 
   const onSubscribe: CreateStore<State>['onSubscribe'] = function (subscribeEvent) {
-    subscribeEventList.push(subscribeEvent);
+    subscribeEventListeners.add(subscribeEvent);
 
     return function () {
-      const idx = subscribeEventList.indexOf(subscribeEvent);
-      subscribeEventList.splice(idx, 1);
+      subscribeEventListeners.delete(subscribeEvent);
     };
   };
 
