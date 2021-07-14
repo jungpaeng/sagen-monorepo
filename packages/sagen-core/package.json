@@ -2,8 +2,31 @@
   "name": "sagen-core",
   "version": "0.4.5",
   "description": "Management global state with out provider",
-  "main": "index.js",
-  "module": "index.esm.js",
+  "main": "lib/index.js",
+  "module": "lib/index.esm.js",
+  "jsnext:module": "lib/index.esm.js",
+  "typings": "lib/index.d.ts",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=10.13.0"
+  },
+  "browserslist": [
+    ">= 0.05%",
+    "not ie 8"
+  ],
+  "exports": {
+    ".": {
+      "require": "./lib/index.js",
+      "default": "./lib/index.esm.js"
+    }
+  },
+  "directories": {
+    "example": "example",
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
   "sideEffects": false,
   "repository": "https://github.com/jungpaeng/sagen-core.git",
   "author": "jungpaeng <meis1541@naver.com> (https://github.com/jungpaeng)",
@@ -18,36 +41,11 @@
     "test:dev": "jest --watch --no-coverage",
     "test:coverage:watch": "jest --watch",
     "prebuild": "rimraf dist",
-    "build": "rollup -c",
-    "postbuild": "yarn copy && yarn edit-json",
-    "copy": "copyfiles -f package.json readme.md LICENSE dist",
-    "edit-json": "json -I -f dist/package.json -e \"this.private=false; this.devDependencies=undefined; this.optionalDependencies=undefined; this.scripts=undefined; this.prettier=undefined;\""
+    "build": "NODE_ENV=production rollup -c"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.10",
-    "@babel/plugin-transform-regenerator": "^7.12.13",
-    "@babel/plugin-transform-runtime": "^7.13.10",
-    "@babel/plugin-transform-typescript": "^7.13.0",
-    "@babel/preset-env": "^7.13.10",
-    "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-node-resolve": "^11.2.0",
     "@types/jest": "^26.0.21",
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "copyfiles": "^2.4.1",
-    "eslint": "^7.22.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jest": "^24.3.2",
-    "eslint-plugin-prettier": "^3.3.1",
-    "jest": "^26.6.3",
-    "json": "^10.0.0",
-    "prettier": "^2.2.1",
-    "rollup": "^2.41.2",
-    "rollup-plugin-size-snapshot": "^0.12.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.30.0",
-    "typescript": "^4.2.3"
+    "jest": "^26.6.3"
   },
   "peerDependencies": {},
   "keywords": [

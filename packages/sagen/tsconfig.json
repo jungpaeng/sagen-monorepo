@@ -2,14 +2,15 @@
   "compilerOptions": {
     "target": "esnext",
     "strict": true,
-    "jsx": "preserve",
+    "jsx": "react",
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "declarationDir": "dist",
+    "declarationDir": "lib",
     "esModuleInterop": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
     "moduleResolution": "node",
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
+  "exclude": ["*.config.js", "node_modules", "lib", "src/storybook", "src/**/*.test.ts"]
 }

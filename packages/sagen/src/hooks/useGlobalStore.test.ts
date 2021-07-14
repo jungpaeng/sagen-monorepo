@@ -21,10 +21,10 @@ describe('useGlobalStore', () => {
     const store = createStore(0);
     const { result } = renderHook(() => useGlobalStore(store));
 
-    act(() => result.current[1]((prev: number) => prev));
+    act(() => result.current[1]((prev) => prev));
     expect(result.current[0]).toBe(0);
 
-    act(() => result.current[1]((prev: number) => prev + 100));
+    act(() => result.current[1]((prev) => prev + 100));
     expect(result.current[0]).toBe(100);
   });
 
@@ -49,13 +49,13 @@ describe('useGlobalStore', () => {
         ...getter(),
         num: getter().num + 1,
       }),
-      ADD: (num: number) => ({
+      ADD: (num) => ({
         ...getter(),
         num: getter().num + num,
       }),
     }));
 
-    const numberSelector = (state: any) => state.num;
+    const numberSelector = (state) => state.num;
     const { result } = renderHook(() => useGlobalStore(objStore, numberSelector));
     expect(result.current[0]).toBe(0);
 

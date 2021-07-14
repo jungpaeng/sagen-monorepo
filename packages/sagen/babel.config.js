@@ -4,7 +4,7 @@ module.exports = (api, targets) => {
 
   return {
     babelrc: false,
-    ignore: ['./node_modules'],
+    ignore: ['node_modules'],
     presets: [
       [
         '@babel/preset-env',
@@ -15,9 +15,6 @@ module.exports = (api, targets) => {
         },
       ],
     ],
-    plugins: [
-      '@babel/plugin-transform-react-jsx',
-      ['@babel/plugin-transform-typescript', { isTSX: true }],
-    ],
+    plugins: [['@babel/plugin-transform-typescript']],
   };
 };
