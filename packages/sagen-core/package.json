@@ -28,11 +28,11 @@
     "lib"
   ],
   "sideEffects": false,
-  "repository": "https://github.com/jungpaeng/sagen-core.git",
+  "repository": "https://github.com/jungpaeng/sagen-monorepo.git",
   "author": "jungpaeng <meis1541@naver.com> (https://github.com/jungpaeng)",
   "license": "MIT",
-  "homepage": "https://github.com/jungpaeng/sagen-core",
-  "bugs": "https://github.com/jungpaeng/sagen-core/issues",
+  "homepage": "https://github.com/jungpaeng/sagen-monorepo",
+  "bugs": "https://github.com/jungpaeng/sagen-monorepo/issues",
   "scripts": {
     "eslint": "eslint --fix \"src/**/*.{js,ts}\"",
     "eslint-examples": "eslint --fix \"example/src/**/*.{js,ts}\"",
