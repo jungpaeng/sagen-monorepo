@@ -45,6 +45,10 @@
       "node": {
         "extensions": [".js", ".ts", ".json"],
         "paths": ["src"]
+      },
+      "alias": {
+        "extensions": [".js", ".ts", ".json"],
+        "map": [["./src/index.ts"]]
       }
     }
   },

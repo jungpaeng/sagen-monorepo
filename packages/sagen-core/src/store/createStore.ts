@@ -5,7 +5,7 @@ export type StoreEnhancer<State = any> = (
   next: StoreEnhancerStoreCreator<State>,
 ) => StoreEnhancerStoreCreator<State>;
 
-export type SetValueFunction<State = any> = (currValue: State) => State;
+export type SetValueFunction<State = any> = (currValue: State) => Partial<State>;
 export type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
 
 export type AddActionValue<State = any> = (...rest: any) => State;
@@ -18,7 +18,7 @@ type AddActionValueRecord<Key extends string | number | symbol, State = any> = R
 export type CreateStore<State = any> = {
   getState(): State;
   resetState(): void;
-  setState(nextState: State | Partial<State> | SetValueFunction<State | Partial<State>>): void;
+  setState(nextState: State | Partial<State> | SetValueFunction<State>): void;
   setAction<ActionMaps extends AddActionValueRecord<string, State>>(
     actionFunc: (getter: CreateStore<State>['getState']) => ActionMaps,
   ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;

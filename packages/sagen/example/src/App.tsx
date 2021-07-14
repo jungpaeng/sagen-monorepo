@@ -16,9 +16,9 @@ function App() {
   );
 
   const onClick = async () => {
-    setPtr((curr) => ({ ptr: curr.ptr! + 1 }));
+    setPtr((curr) => ({ ptr: curr.ptr + 1 }));
     await delay();
-    setPtr((curr) => ({ ptr: curr.ptr! + 1 }));
+    setPtr((curr) => ({ ptr: curr.ptr + 1 }));
   };
 
   return (
