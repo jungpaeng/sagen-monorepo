@@ -28,8 +28,21 @@ describe('createStore', () => {
       store.setState(100);
       expect(store.getState()).toBe(100);
 
+      store.setState(100);
+      expect(store.getState()).toBe(100);
+
       store.resetState();
       expect(store.getState()).toBe(0);
+    });
+
+    it('change object state', () => {
+      const store = createStore({ a: 1, b: 2, c: { c1: 1, c2: 2 } });
+
+      store.setState({ b: 3 });
+      expect(store.getState()).toStrictEqual({ a: 1, b: 3, c: { c1: 1, c2: 2 } });
+
+      store.setState((curr) => ({ c: { ...curr.c, c1: 10 } }));
+      expect(store.getState()).toStrictEqual({ a: 1, b: 3, c: { c1: 10, c2: 2 } });
     });
   });
 

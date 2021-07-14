@@ -18,7 +18,7 @@ type AddActionValueRecord<Key extends string | number | symbol, State = any> = R
 export type CreateStore<State = any> = {
   getState(): State;
   resetState(): void;
-  setState(nextState: State | SetValueFunction<State>): void;
+  setState(nextState: State | Partial<State> | SetValueFunction<State | Partial<State>>): void;
   setAction<ActionMaps extends AddActionValueRecord<string, State>>(
     actionFunc: (getter: CreateStore<State>['getState']) => ActionMaps,
   ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;
@@ -33,40 +33,35 @@ export function createStore<State = any>(
     throw new Error('Passing a function as an argument to createStore() is not allowed.');
   if (typeof enhancer === 'function') return enhancer(createStore)(defaultState);
 
-  let state = defaultState as State;
+  let state: State;
   let action: Record<string, AddActionValue<State>> = {};
-
   const subscribeEventListeners: Set<SubscribeEvent<State>> = new Set();
 
-  function getState() {
-    return state;
-  }
-
-  const setState: CreateStore<State>['setState'] = function (partial) {
+  const getState = () => state;
+  const setState: CreateStore<State>['setState'] = (partial) => {
     const nextState = isFunction(partial)
-      ? (partial as SetValueFunction<State>)(state)
+      ? (partial as SetValueFunction<Partial<State>>)(state)
       : (partial as State);
 
-    if (nextState !== getState()) {
-      const prevState = getState();
-      state = nextState;
+    // Execute only if prev and next are different.
+    if (nextState !== state) {
+      const prevState = state;
 
-      subscribeEventListeners.forEach(function (subscribe) {
-        subscribe(state, prevState);
-      });
+      // Avoid using the spread operator every time.
+      state =
+        typeof state === 'object' ? Object.assign({}, state, nextState) : (nextState as State);
+      subscribeEventListeners.forEach((subscribe) => subscribe(state, prevState));
     }
   };
 
-  function resetState() {
+  const resetState = () => {
     setState(defaultState);
-  }
+  };
 
   const onSubscribe: CreateStore<State>['onSubscribe'] = function (subscribeEvent) {
     subscribeEventListeners.add(subscribeEvent);
 
-    return function () {
-      subscribeEventListeners.delete(subscribeEvent);
-    };
+    return () => subscribeEventListeners.delete(subscribeEvent);
   };
 
   const setAction: CreateStore<State>['setAction'] = function (actionFunc) {
@@ -74,11 +69,17 @@ export function createStore<State = any>(
     return <AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>>action;
   };
 
-  return {
+  const destroy = () => subscribeEventListeners.clear();
+  const api = {
     getState,
     setState,
     resetState,
     setAction,
     onSubscribe,
+    destroy,
   };
+
+  state = defaultState;
+
+  return api;
 }
