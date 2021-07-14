@@ -15,7 +15,7 @@
     "react": "link:../node_modules/react",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.1",
-    "sagen": "link:../dist",
+    "sagen": "link:../lib",
     "typescript": "^4.0.3",
     "web-vitals": "^0.2.4"
   },

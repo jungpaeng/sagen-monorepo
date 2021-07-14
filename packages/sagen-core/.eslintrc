@@ -6,10 +6,9 @@
     "es6": true
   },
   "extends": [
-    "prettier",
-    "plugin:prettier/recommended",
     "plugin:import/errors",
-    "plugin:import/warnings"
+    "plugin:import/warnings",
+    "prettier"
   ],
   "plugins": ["@typescript-eslint", "prettier", "import", "jest"],
   "parser": "@typescript-eslint/parser",

@@ -6,13 +6,10 @@
     "es6": true
   },
   "extends": [
-    "prettier",
-    "prettier/react",
-    "prettier/@typescript-eslint",
-    "plugin:prettier/recommended",
     "plugin:react-hooks/recommended",
     "plugin:import/errors",
-    "plugin:import/warnings"
+    "plugin:import/warnings",
+    "prettier"
   ],
   "plugins": ["@typescript-eslint", "react", "prettier", "react-hooks", "import", "jest"],
   "parser": "@typescript-eslint/parser",
