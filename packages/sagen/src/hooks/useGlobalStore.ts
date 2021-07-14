@@ -6,7 +6,10 @@ export function useGlobalStore<Selected = never, State = any>(
   store: CreateStore<State>,
   selector?: (value: State) => Selected,
   equalityFn?: (prev: State, next: State) => boolean,
-): [SagenState<Selected, State>, (state: State | SetValueFunction<State>) => void] {
+): [
+  SagenState<Selected, State>,
+  (state: State | Partial<State> | SetValueFunction<State | Partial<State>>) => void,
+] {
   const sagenState = useSagenState<Selected, State>(store, selector, equalityFn);
   const setSagenState = useSetSagenState<State>(store);
 
