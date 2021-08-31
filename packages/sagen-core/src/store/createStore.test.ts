@@ -1,6 +1,7 @@
 import { createStore } from './createStore';
 import { redux } from './redux';
 import { composeMiddleware, Middleware } from './composeMiddleware';
+import { computed } from './computed';
 
 describe('createStore', () => {
   describe('basics', () => {
@@ -91,6 +92,18 @@ describe('createStore', () => {
       storeDispatch({ type: 'increase' });
       expect(store.getState().a).toBe(1);
       expect(store.getState().b).toBe(0);
+    });
+  });
+
+  describe('computed', () => {
+    it('action to dispatch', () => {
+      const store = createStore({ a: 0, b: 0 });
+      const computedValue = computed(store, (state) => state.a + state.b);
+
+      expect(computedValue()).toBe(0);
+
+      store.setState({ a: 1 });
+      expect(computedValue()).toBe(1);
     });
   });
 
