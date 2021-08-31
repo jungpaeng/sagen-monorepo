@@ -8,21 +8,12 @@ export type StoreEnhancer<State = any> = (
 export type SetValueFunction<State = any> = (currValue: State) => Partial<State>;
 export type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
 
-export type AddActionValue<State = any> = (...rest: any) => State;
-
-type AddActionValueRecord<Key extends string | number | symbol, State = any> = Record<
-  Key,
-  AddActionValue<State>
->;
-
 export type CreateStore<State = any> = {
   getState(): State;
   resetState(): void;
   setState(nextState: State | Partial<State> | SetValueFunction<State>): void;
-  setAction<ActionMaps extends AddActionValueRecord<string, State>>(
-    actionFunc: (getter: CreateStore<State>['getState']) => ActionMaps,
-  ): AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>;
   onSubscribe(subscribeEvent: SubscribeEvent<State>): () => void;
+  destroy(): void;
 };
 
 export function createStore<State = any>(
@@ -31,10 +22,11 @@ export function createStore<State = any>(
 ): CreateStore<State> {
   if (typeof defaultState === 'function')
     throw new Error('Passing a function as an argument to createStore() is not allowed.');
+
+  // support redux middleware
   if (typeof enhancer === 'function') return enhancer(createStore)(defaultState);
 
   let state: State;
-  let action: Record<string, AddActionValue<State>> = {};
   const subscribeEventListeners: Set<SubscribeEvent<State>> = new Set();
 
   const getState = () => state;
@@ -64,22 +56,9 @@ export function createStore<State = any>(
     return () => subscribeEventListeners.delete(subscribeEvent);
   };
 
-  const setAction: CreateStore<State>['setAction'] = function (actionFunc) {
-    action = actionFunc(getState);
-    return <AddActionValueRecord<keyof ReturnType<typeof actionFunc>, State>>action;
-  };
-
   const destroy = () => subscribeEventListeners.clear();
-  const api = {
-    getState,
-    setState,
-    resetState,
-    setAction,
-    onSubscribe,
-    destroy,
-  };
+  const api = { getState, setState, resetState, onSubscribe, destroy };
 
   state = defaultState;
-
   return api;
 }

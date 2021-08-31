@@ -1,5 +1,5 @@
 import { createStore } from './createStore';
-import { createDispatch } from './createDispatch';
+import { redux } from './redux';
 import { composeMiddleware, Middleware } from './composeMiddleware';
 
 describe('createStore', () => {
@@ -12,7 +12,6 @@ describe('createStore', () => {
       expect(methods).toContain('getState');
       expect(methods).toContain('setState');
       expect(methods).toContain('resetState');
-      expect(methods).toContain('setAction');
       expect(methods).toContain('onSubscribe');
     });
 
@@ -76,49 +75,66 @@ describe('createStore', () => {
 
   describe('reducer', () => {
     it('action to dispatch', () => {
-      const store = createStore(0);
-      const storeDispatch = createDispatch(store);
-      const storeAction = store.setAction((get) => ({
-        ADD: (num) => get() + num,
-        INCREMENT: () => get() + 1,
-      }));
+      const store = createStore({ a: 0, b: 0 });
+      const storeDispatch = redux<{ type: 'increase' | 'decrease'; by?: number }>(
+        store,
+        (state, { type, by = 1 }) => {
+          switch (type) {
+            case 'increase':
+              return { a: state.a + by };
+            case 'decrease':
+              return { a: state.a - by };
+          }
+        },
+      );
 
-      storeDispatch(storeAction.ADD, 10);
-      expect(store.getState()).toBe(10);
-
-      storeDispatch(storeAction.ADD, 10);
-      expect(store.getState()).toBe(20);
-    });
-
-    it('wrong action to setState', () => {
-      const store = createStore(0);
-      const storeDispatch = createDispatch(store);
-      store.setAction((get) => ({
-        ADD: (num) => get() + num,
-        INCREMENT: () => get() + 1,
-      }));
-
-      // @ts-ignore
-      storeDispatch('INCREMENT');
-      expect(store.getState()).toBe(0);
+      storeDispatch({ type: 'increase' });
+      expect(store.getState().a).toBe(1);
+      expect(store.getState().b).toBe(0);
     });
   });
 
-  it('subscribe to setState', () => {
-    let counter = 0;
-    const store = createStore(0);
+  describe('subscription', () => {
+    it('subscribe to setState', () => {
+      let counter = 0;
+      const store = createStore(0);
 
-    const unSubscribe = store.onSubscribe((newStgate, prevState) => {
-      counter++;
+      const unSubscribe = store.onSubscribe(() => {
+        counter++;
+      });
+
+      // change counter from subscribe
+      store.setState(1);
+      expect(counter).toBe(1);
+
+      // not change counter
+      unSubscribe();
+      store.setState(0);
+      expect(counter).toBe(1);
     });
 
-    // change counter from subscribe
-    store.setState(1);
-    expect(counter).toBe(1);
+    it('destroy subscription', () => {
+      let counterA = 0;
+      let counterB = 0;
+      const store = createStore(0);
 
-    // not change counter
-    unSubscribe();
-    store.setState(0);
-    expect(counter).toBe(1);
+      store.onSubscribe(() => {
+        counterA++;
+      });
+      store.onSubscribe(() => {
+        counterB++;
+      });
+
+      // change counter from subscribe
+      store.setState(1);
+      expect(counterA).toBe(1);
+      expect(counterB).toBe(1);
+
+      // not change counter
+      store.destroy();
+      store.setState(0);
+      expect(counterA).toBe(1);
+      expect(counterB).toBe(1);
+    });
   });
 });
