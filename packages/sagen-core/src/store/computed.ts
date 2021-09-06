@@ -1,6 +1,6 @@
 import { CreateStore } from './createStore';
 
-type ComputedStore<Computed = any, State = any> = CreateStore<State> & {
+export type ComputedStore<Computed = any, State = any> = CreateStore<State> & {
   getComputed(): Computed;
 };
 
