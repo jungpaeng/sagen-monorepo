@@ -11,14 +11,10 @@ export type CreateStore<State = any> = {
   destroy(): void;
 };
 
-export type StateCreator<State = any> = (api: {
-  getState: () => State;
-  setState: (nextState: State | Partial<State> | SetValueFunction<State>) => void;
-}) => State;
+export function createStore<State = any>(defaultState: State): CreateStore<State> {
+  if (typeof defaultState === 'function')
+    throw new Error('Passing a function as an argument to createStore() is not allowed.');
 
-export function createStore<State = any>(
-  stateCreator: State | StateCreator<State>,
-): CreateStore<State> {
   let state: State;
   const subscribeEventListeners: Set<SubscribeEvent<State>> = new Set();
 
@@ -38,11 +34,6 @@ export function createStore<State = any>(
       subscribeEventListeners.forEach((subscribe) => subscribe(state, prevState));
     }
   };
-
-  const defaultState =
-    typeof stateCreator === 'function'
-      ? (stateCreator as StateCreator<State>)({ getState, setState })
-      : stateCreator;
 
   const resetState = () => {
     setState(defaultState);
