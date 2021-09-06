@@ -138,16 +138,36 @@ const storeDispatch = redux<{ type: 'increase' | 'decrease'; by?: number }>(
 );
 
 storeDispatch({ type: 'increase' });
-store.getStore(); // 1
+store.getState(); // 1
 ```
 
-### 4. event subscribe
+#### 4. computed
+
+You can get a `computed value` based on the `state` value.
+
+```typescript jsx
+const store = createStore({ a: 0, b: 0 });
+const computedStore = computed(
+    store,
+    (state) => {
+        return {
+            ab: state.a + state.b
+        };
+    },
+);
+
+computedStore.setState({ a: 50, b: 100 });
+computedStore.getState(); // { a: 50, b: 100 }
+computedStore.getComputed(); // { ab: 150 }
+```
+
+### 5. event subscribe
 
 You can trigger an event when an update occurs.
 
 This event cannot affect the state value.
 
-#### 4-a. onSubscribe
+#### 5-a. onSubscribe
 
 ```ts
 import { createStore } from 'sagen-core';

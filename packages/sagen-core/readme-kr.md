@@ -138,16 +138,36 @@ const storeDispatch = redux<{ type: 'increase' | 'decrease'; by?: number }>(
 );
 
 storeDispatch({ type: 'increase' });
-store.getStore(); // 1
+store.getState(); // 1
 ```
 
-### 4. event subscribe
+#### 4. computed
+
+`state` 값을 바탕으로 `computed value`를 얻을 수 있습니다.
+
+```typescript jsx
+const store = createStore({ a: 0, b: 0 });
+const storeDispatch = computed(
+    store,
+    (state) => {
+        return {
+            ab: state.a + state.b
+        };
+    },
+);
+
+store.setState({ a: 50, b: 100 });
+store.getState(); // { a: 50, b: 100 }
+store.getComputed(); // { ab: 150 }
+```
+
+### 5. event subscribe
 
 업데이트가 발생할 때 event를 실행시킬 수 있습니다.
 
 이 event는 state 값에 영향을 줄 수 없습니다.
 
-#### 4-a. onSubscribe
+#### 5-a. onSubscribe
 
 ```ts
 import { createStore } from 'sagen-core';
