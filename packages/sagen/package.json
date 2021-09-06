@@ -1,6 +1,6 @@
 {
   "name": "sagen",
-  "version": "2.3.0",
+  "version": "3.0.0-alpha.0",
   "description": "Management global state with out provider",
   "main": "lib/index.js",
   "module": "lib/index.esm.js",
@@ -44,7 +44,7 @@
     "build": "NODE_ENV=production rollup -c"
   },
   "dependencies": {
-    "sagen-core": "^0.4.6"
+    "sagen-core": "^0.5.0-alpha.0"
   },
   "devDependencies": {
     "@testing-library/react": "^11.2.2",
