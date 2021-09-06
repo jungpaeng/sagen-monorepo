@@ -19,9 +19,8 @@ describe('createStore', () => {
       expect(store.getState()).toBe(100);
     });
 
-    it('get state from function default state', () => {
-      const store = createStore(() => 100);
-      expect(store.getState()).toBe(100);
+    it('throws if defaultState is a function', () => {
+      expect(() => createStore(() => 100)).toThrow();
     });
   });
 
