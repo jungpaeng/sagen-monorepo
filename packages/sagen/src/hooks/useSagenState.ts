@@ -1,10 +1,7 @@
 import React from 'react';
 import { CreateStore } from 'sagen-core';
+import { defaultEqualityFn } from '../lib';
 import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
-
-function defaultEqualityFn(prev: any, next: any) {
-  return prev === next;
-}
 
 export type SagenState<Selected = never, State = any> = [Selected] extends [never]
   ? State
@@ -92,7 +89,7 @@ export function useSagenState<Selected = never, State = any>(
     }
 
     return unSubscribe;
-  }, [selectedState, equalityFn, store]);
+  }, [store]);
 
   return hasNewStateSlice
     ? (newStateSlice as SagenState<Selected, State>)
