@@ -23,15 +23,15 @@ $ yarn add sagen-core
 
 ## 🏃 Getting started
 
-sagen-core is a state management library that combines each store without a root store.
+sagen-core is a state management library that can be used by defining each store.
 
 ### 1. Create a store
 
 You can manage the state by creating a `store`. The store offers the following features:
 
--Create a single store by combining multiple stores
--Standardize store management with a pattern similar to reducer
--Minimize operation of unused state by managing store state comparison operation
+- Manage store values using reducers
+- Compute state using computed function
+- Minimize operation of unused state by managing store state comparison operation
 
 #### 1-a. createStore
 
@@ -73,91 +73,81 @@ store.setState({ num: 1, str: 'boo' });
 store.getState(); // { num: 1, str: 'boo' }
 ```
 
-If you need to modify the value using the current `state` value, you can pass the `(curr: State) => State` function.
+If you need to modify some values in an object, you can edit them by writing the corresponding key.
 
 ```typescript
 import { createStore } from 'sagen-core';
 
 const store = createStore({ num: 0, str: '' });
 
-store.setState(curr => ({ ...curr, num: 1 }));
+store.setState(({ num: 1 }));
 store.getState(); // { num: 1, str: '' }
 ```
 
-### 3. Dispatch
+You can get the current value by passing a function to the argument of setState.
 
-You can manage it by adding a `action` to the `store` created with the `createStore` function.
+```typescript
+import { createStore } from 'sagen-core';
 
-#### 3-a. setAction
+const store = createStore({ obj: { num: 0, str: '' } });
 
-Before using `Dispatch`, you need to define `Action`.
+store.setState(curr => ({
+    obj: { ...curr.obj, num: 1 },
+}));
+
+store.getState(); // { obj: { num: 1, str: '' } }
+```
+
+### 3. redux
+
+You can manage values by passing `reducer`.
+
+#### 3-a. pass to reducer
 
 ```typescript jsx
 const store = createStore(0);
-const storeAction = store.setAction((getter) => ({
-  INCREMENT: () => getter() + 1,
-  ADD: (num) => getter() + num,
-}));
+redux<{ type: 'increase' | 'decrease'; by?: number }>(
+    store,
+    (state, { type, by = 1 }) => {
+        switch (type) {
+            case 'increase':
+                return state + by;
+            case 'decrease':
+                return state - by;
+        }
+    },
+);
 ```
 
-#### 3-a. createDispatch
+#### 3-b. storeDispatch
 
-The `dispatch` function passes the value created through `action` as an argument.
+The `redux` function returns `dispatch`.
 
 ```typescript jsx
 const store = createStore(0);
-const storeDispatch = createDispatch(store);
-const storeAction = store.setAction((getter) => ({
-  INCREMENT: () => getter() + 1,
-  ADD: (num) => getter() + num,
-}));
+const storeDispatch = redux<{ type: 'increase' | 'decrease'; by?: number }>(
+    store,
+    (state, { type, by = 1 }) => {
+        switch (type) {
+            case 'increase':
+                return state + by;
+            case 'decrease':
+                return state - by;
+        }
+    },
+);
+
+storeDispatch({ type: 'increase' });
+store.getStore(); // 1
 ```
 
-```typescript jsx
-storeDispatch(storeAction.INCREMENT)
-storeDispatch(storeAction.ADD, 100)
-```
-
-
-### 4. middleware
-
-**sagen is compatible with Redux middleware.**
-
-#### 4-a. composeMiddleware
-
-Here is a simple logger middleware.
-
-You can combine multiple `middleware` using `composeMiddleware`, and pass it to the second argument of `createStore`.
-
-```ts
-import { createStore, composeMiddleware } from 'sagen-core';
-
-const loggerMiddleware = store => next => action => {
-  console.log('current state', store.getState());
-  console.log('action', action);
-  next(action);
-  console.log('next state', store.getState());
-}
-
-const store = createStore(0, composeMiddleware(loggerMiddleware));
-store.setState(1);
-```
-
-**console log**
-
-```console
-current state,  0
-action, 1
-next state,  1
-```
-
-### 5. Subscribe to events
+### 4. event subscribe
 
 You can trigger an event when an update occurs.
 
 This event cannot affect the state value.
 
-#### 5-a. onSubscribe
+#### 4-a. onSubscribe
 
 ```ts
 import { createStore } from 'sagen-core';
@@ -175,36 +165,6 @@ store.setState(1);
 removeEvent();
 store.setState(0);
 // [console.log] Empty
-```
-
-### 6. Store merging
-
-Multiple `stores' can be combined and managed as a single `store`.
-
-If you wish, you can also create and manage a single Root Store.
-
-#### 6-a. composeStore
-
-With `composeStore`, you can group `store` into a single `store`.
-
-The integrated store is in a state of subscribing to the original store.
-
-Changing values in one store affects values in other stores.
-
-```typescript jsx
-import { composeStore } from 'sagen-core';
-
-const numStoreA = createStore(0);
-const numStoreB = createStore(0);
-
-const { store: numStoreAB } = composeStore({
-  a: numStoreA,
-  b: numStoreB,
-});
-
-numStoreAB.setState({ a: 1, b: 0 });
-
-numStoreA.getState(); // 1
 ```
 
 ## Using in React

@@ -23,14 +23,14 @@ $ yarn add sagen-core
 
 ## 🏃 시작하기
 
-sagen-core는 root store가 없는 각각의 store를 조합해서 사용하는 상태 관리 라이브러리입니다.
+sagen-core는 각각의 store를 정의해서 사용할 수 있는 상태 관리 라이브러리입니다.
 
 ### 1. store 만들기
 
 `store`를 생성해 state를 관리할 수 있습니다. store는 다음 기능을 제공합니다.
 
-- 여러 store를 조합해서 하나의 store를 생성
-- reducer와 유사한 패턴으로 store 관리 정형화
+- reducer를 사용해 store 값을 관리
+- computed 함수를 이용해 state 연산
 - store state 비교 연산을 관리하여 사용되지 않는 state의 연산 최소화
 
 #### 1-a. createStore
@@ -73,91 +73,81 @@ store.setState({ num: 1, str: 'boo' });
 store.getState(); // { num: 1, str: 'boo' }
 ```
 
-만약, 현재의 `state` 값을 이용해 값을 수정해야 한다면 `(curr: State) => State` 함수를 넘기면 됩니다.
+만약, 객체에서 일부 값을 수정해야 한다면 해당 키를 작성해 수정할 수 있습니다.
 
 ```typescript
 import { createStore } from 'sagen-core';
 
 const store = createStore({ num: 0, str: '' });
 
-store.setState(curr => ({ ...curr, num: 1 }));
+store.setState(({ num: 1 }));
 store.getState(); // { num: 1, str: '' }
 ```
 
-### 3. Dispatch
+setState의 인자에 함수를 넘겨 현재 값을 받아올 수 있습니다.
 
-`createStore` 함수로 생성한 `store`에 `action`을 추가해 관리할 수 있습니다.
+```typescript
+import { createStore } from 'sagen-core';
 
-#### 3-a. setAction
+const store = createStore({ obj: { num: 0, str: '' } });
 
-`Dispatch`를 이용하기 전, `Action`을 정의해야 합니다.
+store.setState(curr => ({
+    obj: { ...curr.obj, num: 1 },
+}));
+
+store.getState(); // { obj: { num: 1, str: '' } }
+```
+
+### 3. redux
+
+`reducer`를 전달해 값을 관리할 수 있습니다.
+
+#### 3-a. pass to reducer
 
 ```typescript jsx
 const store = createStore(0);
-const storeAction = store.setAction((getter) => ({
-  INCREMENT: () => getter() + 1,
-  ADD: (num) => getter() + num,
-}));
+redux<{ type: 'increase' | 'decrease'; by?: number }>(
+    store,
+    (state, { type, by = 1 }) => {
+        switch (type) {
+            case 'increase':
+                return state + by;
+            case 'decrease':
+                return state - by;
+        }
+    },
+);
 ```
 
-#### 3-a. createDispatch
+#### 3-b. storeDispatch
 
-`dispatch` 함수는 인자로 `action`을 통해 만든 값을 전달합니다.
+`redux` 함수는 `dispatch`를 반환합니다.
 
 ```typescript jsx
 const store = createStore(0);
-const storeDispatch = createDispatch(store);
-const storeAction = store.setAction((getter) => ({
-  INCREMENT: () => getter() + 1,
-  ADD: (num) => getter() + num,
-}));
+const storeDispatch = redux<{ type: 'increase' | 'decrease'; by?: number }>(
+    store,
+    (state, { type, by = 1 }) => {
+        switch (type) {
+            case 'increase':
+                return state + by;
+            case 'decrease':
+                return state - by;
+        }
+    },
+);
+
+storeDispatch({ type: 'increase' });
+store.getStore(); // 1
 ```
 
-```typescript jsx
-storeDispatch(storeAction.INCREMENT)
-storeDispatch(storeAction.ADD, 100)
-```
-
-
-### 4. middleware
-
-**sagen은 Redux의 미들웨어를 호환합니다.**
-
-#### 4-a. composeMiddleware
-
-다음은 간단한 logger middleware 입니다.
-
-`composeMiddleware`를 사용해 여러 `middleware`를 조합할 수 있으며, `createStore`의 두 번째 인자에 넘깁니다.
-
-```ts
-import { createStore, composeMiddleware } from 'sagen-core';
-
-const loggerMiddleware = store => next => action => {
-  console.log('현재 상태', store.getState());
-  console.log('액션', action);
-  next(action);
-  console.log('다음 상태', store.getState());
-}
-
-const store = createStore(0, composeMiddleware(loggerMiddleware));
-store.setState(1);
-```
-
-**console log**
-
-```console
-현재 상태,  0
-액션, 1
-다음 상태,  1
-```
-
-### 5. 이벤트 구독
+### 4. event subscribe
 
 업데이트가 발생할 때 event를 실행시킬 수 있습니다.
 
 이 event는 state 값에 영향을 줄 수 없습니다.
 
-#### 5-a. onSubscribe
+#### 4-a. onSubscribe
 
 ```ts
 import { createStore } from 'sagen-core';
@@ -175,34 +165,6 @@ store.setState(1);
 removeEvent();
 store.setState(0);
 // [console.log] Empty
-```
-
-### 6. Store 합치기
-
-여러 `store`를 합쳐 하나의 `store`로 관리할 수 있습니다.
-
-원한다면 하나의 Root Store를 만들어 관리할 수도 있습니다.
-
-#### 6-a. composeStore
-
-`composeStore`로 `store`를 하나의 `store`로 묶을 수 있습니다.
-
-통합된 store는 원본 store와 서로 구독하고 있는 상태입니다. 한 store의 값 변경은 다른 store의 값에 영향을 줍니다.
-
-```typescript jsx
-import { composeStore } from 'sagen-core';
-
-const numStoreA = createStore(0);
-const numStoreB = createStore(0);
-
-const { store: numStoreAB } = composeStore({
-  a: numStoreA,
-  b: numStoreB,
-});
-
-numStoreAB.setState({ a: 1, b: 0 });
-
-numStoreA.getState(); // 1
 ```
 
 ## React에서 사용하기
