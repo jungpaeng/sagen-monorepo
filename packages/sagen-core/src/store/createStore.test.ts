@@ -1,12 +1,10 @@
 import { createStore } from './createStore';
 import { redux } from './redux';
-import { composeMiddleware, Middleware } from './composeMiddleware';
-import { computed } from './computed';
 
 describe('createStore', () => {
   describe('basics', () => {
     it('exposes the public API', () => {
-      const store = createStore(0);
+      const store = createStore(100);
       const methods = Object.keys(store).filter((key) => key);
 
       expect(methods.length).toBe(5);
@@ -16,8 +14,14 @@ describe('createStore', () => {
       expect(methods).toContain('onSubscribe');
     });
 
-    it('throws if defaultState is a function', () => {
-      expect(() => createStore(() => null)).toThrow();
+    it('get state', () => {
+      const store = createStore(100);
+      expect(store.getState()).toBe(100);
+    });
+
+    it('get state from function default state', () => {
+      const store = createStore(() => 100);
+      expect(store.getState()).toBe(100);
     });
   });
 
@@ -46,34 +50,6 @@ describe('createStore', () => {
     });
   });
 
-  describe('middleware', () => {
-    it('should be called Middleware when setState is called', () => {
-      const spy = jest.fn();
-      const spyMiddleware: Middleware = (store) => (next) => (action) => {
-        spy(action);
-        next(action);
-      };
-
-      const store = createStore(0, composeMiddleware(spyMiddleware));
-
-      store.setState(100);
-      expect(spy.mock.calls.length).toBe(1);
-      expect(spy.mock.calls[0][0]).toBe(100);
-    });
-
-    it('should be error when used setState in middleware', () => {
-      const spy = jest.fn();
-      const spyMiddleware: Middleware = (store) => (next) => (action) => {
-        store.setState(1);
-        spy(action);
-        next(action);
-      };
-
-      const store = createStore(0, composeMiddleware(spyMiddleware));
-      expect(() => store.setState(1)).toThrow();
-    });
-  });
-
   describe('reducer', () => {
     it('action to dispatch', () => {
       const store = createStore({ a: 0, b: 0 });
@@ -92,18 +68,6 @@ describe('createStore', () => {
       storeDispatch({ type: 'increase' });
       expect(store.getState().a).toBe(1);
       expect(store.getState().b).toBe(0);
-    });
-  });
-
-  describe('computed', () => {
-    it('action to dispatch', () => {
-      const store = createStore({ a: 0, b: 0 });
-      const computedValue = computed(store, (state) => state.a + state.b);
-
-      expect(computedValue()).toBe(0);
-
-      store.setState({ a: 1 });
-      expect(computedValue()).toBe(1);
     });
   });
 

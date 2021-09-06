@@ -1,10 +1,5 @@
 import { isFunction } from '../lib';
 
-export type StoreEnhancerStoreCreator<State = any> = (defaultState: State) => CreateStore<State>;
-export type StoreEnhancer<State = any> = (
-  next: StoreEnhancerStoreCreator<State>,
-) => StoreEnhancerStoreCreator<State>;
-
 export type SetValueFunction<State = any> = (currValue: State) => Partial<State>;
 export type SubscribeEvent<State = any> = (newState: State, prevState: State) => void;
 
@@ -16,16 +11,14 @@ export type CreateStore<State = any> = {
   destroy(): void;
 };
 
+export type StateCreator<State = any> = (api: {
+  getState: () => State;
+  setState: (nextState: State | Partial<State> | SetValueFunction<State>) => void;
+}) => State;
+
 export function createStore<State = any>(
-  defaultState: State,
-  enhancer?: StoreEnhancer<State>,
+  stateCreator: State | StateCreator<State>,
 ): CreateStore<State> {
-  if (typeof defaultState === 'function')
-    throw new Error('Passing a function as an argument to createStore() is not allowed.');
-
-  // support redux middleware
-  if (typeof enhancer === 'function') return enhancer(createStore)(defaultState);
-
   let state: State;
   const subscribeEventListeners: Set<SubscribeEvent<State>> = new Set();
 
@@ -45,6 +38,11 @@ export function createStore<State = any>(
       subscribeEventListeners.forEach((subscribe) => subscribe(state, prevState));
     }
   };
+
+  const defaultState =
+    typeof stateCreator === 'function'
+      ? (stateCreator as StateCreator<State>)({ getState, setState })
+      : stateCreator;
 
   const resetState = () => {
     setState(defaultState);
