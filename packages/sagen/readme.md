@@ -51,23 +51,23 @@ const multipleStore = createStore({ num: 0, str: '' });
 
 The `createStore` function returns `getState`,`setState` functions.
 
-In React, you can use `useGlobalStore`, `useSagenState`, and `useSetSagenState` to manage values.
+In React, you can use `useSagenStore`, `useSagenState`, and `useSetSagenState` to manage values.
 
-#### 2-a. useGlobalStore
+#### 2-a. useSagenStore
 
-The `useGlobalStore` Hook returns `getter` and `setter` as an array.
+The `useSagenStore` Hook returns `getter` and `setter` as an array.
 
 The usage method is the same as the `React.useState` Hook.
 
 Changes from other configurations can be received as `getter`.
 
 ```typescript jsx
-import { createStore, useGlobalStore } from 'sagen';
+import { createStore, useSagenStore } from 'sagen';
 
 const store = createStore(0);
 
 function Test() {
-  const [num, setNum] = useGlobalStore(store);
+  const [num, setNum] = useSagenStore(store);
   
   const incrementNum = () => {
     setNum(curr => curr + 1);
@@ -128,13 +128,13 @@ function Test() {
 
 #### 2-1. getter
 
-You can add arguments to `useGlobalStore` and `useSagenState` that return `getter`.
+You can add arguments to `useSagenStore` and `useSagenState` that return `getter`.
 
 This is used for performance optimization.
 
 ##### 2-1-a. selector
 
-You can pass `selector` to `useGlobalStore` and `useSagenState`.
+You can pass `selector` to `useSagenStore` and `useSagenState`.
 
 This is mainly used for object stores, and allows you to subscribe only to the desired value of the object values.
 
@@ -145,7 +145,7 @@ Since sagen operates only on the values that the component subscribes to,
 it is not recommended to subscribe to values that are not being used.
 
 ```typescript jsx
-import { createStore, useGlobalStore } from 'sagen';
+import { createStore, useSagenStore } from 'sagen';
 
 const infoStore = createStore({
   name: 'jungpaeng',
@@ -156,7 +156,7 @@ const ageSelector = store => store.age;
 
 function Test() {
   // Pass the ageSelector as the component uses only the age value.
-  const [age, setInfo] = useGlobalStore(infoStore, ageSelector);
+  const [age, setInfo] = useSagenStore(infoStore, ageSelector);
 
   const incrementAge = () => {
     setInfo(curr => ({ ...curr, age: curr.age + 1 }));
@@ -175,14 +175,14 @@ function Test() {
 
 ##### 2-1-b. equalityFn
 
-You can pass `equalityFn` to `useGlobalStore` and `useSagenState`.
+You can pass `equalityFn` to `useSagenStore` and `useSagenState`.
 
 Used to detect if a component's subscribed value has changed.
 
 Basically, `===` is used to compare, and `shallowEqual` is provided for comparing arrays, objects, etc.
 
 ```typescript jsx
-import { createStore, useGlobalStore, shallowEqual } from 'sagen';
+import { createStore, useSagenStore, shallowEqual } from 'sagen';
 
 const infoStore = createStore({
   name: 'jungpaeng',
@@ -194,7 +194,7 @@ const selector = store => ({ name: store.name, age: store.age });
 
 function Test() {
   // Even if the unsubscribed use value changes, the component does not react.
-  const [info, setInfo] = useGlobalStore(infoStore, selector, shallowEqual);
+  const [info, setInfo] = useSagenStore(infoStore, selector, shallowEqual);
 
   const incrementAge = () => {
     setInfo(curr => ({ ...curr, age: curr.age + 1 }));
@@ -212,75 +212,96 @@ function Test() {
 }
 ```
 
-### 3. Dispatch
+### 3. redux
 
-You can manage it by adding a `action` to the `store` created with the `createStore` function.
+You can manage values by passing `reducer`.
 
-#### 3-a. setAction
-
-Before using `Dispatch`, you need to define `Action`.
+#### 3-a. pass to reducer
 
 ```typescript jsx
 const store = createStore(0);
-const storeAction = store.setAction((getter) => ({
-  INCREMENT: () => getter() + 1,
-  ADD: (num) => getter() + num,
-}));
+redux<{ type: 'increase' | 'decrease'; by?: number }>(
+    store,
+    (state, { type, by = 1 }) => {
+        switch (type) {
+            case 'increase':
+                return state + by;
+            case 'decrease':
+                return state - by;
+        }
+    },
+);
 ```
 
-#### 3-a. createDispatch
+#### 3-b. storeDispatch
 
-The `dispatch` function passes the value created through `action` as an argument.
+The `redux` function returns `dispatch`.
 
 ```typescript jsx
 const store = createStore(0);
-const storeDispatch = createDispatch(store);
-const storeAction = store.setAction((getter) => ({
-  INCREMENT: () => getter() + 1,
-  ADD: (num) => getter() + num,
-}));
+const storeDispatch = redux<{ type: 'increase' | 'decrease'; by?: number }>(
+    store,
+    (state, { type, by = 1 }) => {
+        switch (type) {
+            case 'increase':
+                return state + by;
+            case 'decrease':
+                return state - by;
+        }
+    },
+);
+
+storeDispatch({ type: 'increase' });
 ```
+
+### 4. computed
+
+You can get a `computed value` based on the `state` value.
 
 ```typescript jsx
-storeDispatch(storeAction.INCREMENT)
-storeDispatch(storeAction.ADD, 100)
+const store = createStore({ a: 0, b: 0 });  // not use
+const computedStore = computed(
+    store,
+    (state) => {
+        return {
+            ab: state.a + state.b
+        };
+    },
+);
+
+computedStore.setState({ a: 50, b: 100 });
+computedStore.getState(); // { a: 50, b: 100 }
+computedStore.getComputed(); // { ab: 150 }
 ```
 
-### 4. middleware
+#### 4-a. useComputed
 
-**sagen is compatible with Redux middleware.**
+Use the `useComputed` Hook to get the `computed` value.
 
-#### 4-a. composeMiddleware
+```typescript jsx
+const store = computed(createStore({ a: 0, b: 0 }), (state) => state.a + state.b);
+const [state, setState] = useSagenStore(store);
+const computed = useComputed(store);
 
-Here is a simple logger middleware.
-
-You can combine multiple `middleware` using `composeMiddleware`,
-
-and pass it to the second argument of `createStore`.
-
-```ts
-import { createStore, composeMiddleware } from 'sagen';
-
-const loggerMiddleware = store => next => action => {
-  console.log('Current state', store.getState());
-  console.log('Action', action);
-  next(action);
-  console.log('Next state', store.getState());
-}
-
-const store = createStore(0, composeMiddleware(loggerMiddleware));
-
-// In Component ...
-const [state, setState] = useGlobalStore(store);
-setState(1);
+// state: { a: 0, b: 0 }
+// computed: 0
 ```
 
-**console log**
+#### 4-b. useComputed with selector
 
-```console
-Current state, 0
-Action, 1
-Next state, 1
+You can pass `selector` and `equalityFn` as arguments to `useComputed` Hook.
+
+```typescript jsx
+
+const store = computed(createStore({ a: 0, b: 0 }), (state) => ({
+    sum: state.a + state.b,
+    isEnough: (state.a + state.b) > 100 ? 'enough' : 'not enough',
+}));
+const [state, setState] = useSagenStore(store);
+const computed = useComputed(store, computed => computed.sum);
+
+// state: { a: 0, b: 0 }
+// computed: 0
 ```
 
 ### 5. Subscribe to events
@@ -302,7 +323,7 @@ const removeEvent = store.onSubscribe((newState, prevState) => {
 });
 
 // In Component ...
-const [state, setState] = useGlobalStore(store);
+const [state, setState] = useSagenStore(store);
 setState(1);
 // [console.log] prev: 0, new: 1
 
@@ -316,58 +337,6 @@ setState(0);
 Multiple `stores' can be combined and managed as a single `store`.
 
 If you wish, you can also create and manage a single Root Store.
-
-#### 6-a. composeStore
-
-With `composeStore`, you can group `store` into a single `store`.
-
-The integrated store is in a state of subscribing to the original store.
-
-Changing values in one store affects values in other stores.
-
-```typescript jsx
-import { createStore, composeStore, useGlobalStore } from 'sagen';
-
-const numStoreA = createStore(0);
-const numStoreB = createStore(0);
-
-const { store: numStoreAB } = composeStore({
-  a: numStoreA,
-  b: numStoreB,
-});
-
-function Test() {
-  const [store, setStore] = useGlobalStore(store);
-
-  const incrementA = () => {
-    setStore(curr => ({
-      ...curr,
-      a: curr.a + 1,
-    }));
-  };
-
-  const incrementB = () => {
-    setStore(curr => ({
-      ...curr,
-      b: curr.b + 1,
-    }));
-  };
-
-  return (
-    <div>
-      <p>A num: {store.a}</p>
-      <button onClick={incrementA}>
-        A Increment
-      </button>
-
-      <p>B num: {store.b}</p>
-      <button onClick={incrementB}>
-        B Increment
-      </button>
-    </div>
-  );
-}
-```
 
 ## Using without React
 

@@ -141,7 +141,7 @@ storeDispatch({ type: 'increase' });
 store.getState(); // 1
 ```
 
-#### 4. computed
+### 4. computed
 
 You can get a `computed value` based on the `state` value.
 

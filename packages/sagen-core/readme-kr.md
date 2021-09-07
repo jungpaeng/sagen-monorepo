@@ -141,13 +141,13 @@ storeDispatch({ type: 'increase' });
 store.getState(); // 1
 ```
 
-#### 4. computed
+### 4. computed
 
 `state` 값을 바탕으로 `computed value`를 얻을 수 있습니다.
 
 ```typescript jsx
 const store = createStore({ a: 0, b: 0 });
-const storeDispatch = computed(
+const computedStore = computed(
     store,
     (state) => {
         return {
@@ -156,9 +156,9 @@ const storeDispatch = computed(
     },
 );
 
-store.setState({ a: 50, b: 100 });
-store.getState(); // { a: 50, b: 100 }
-store.getComputed(); // { ab: 150 }
+computedStore.setState({ a: 50, b: 100 });
+computedStore.getState(); // { a: 50, b: 100 }
+computedStore.getComputed(); // { ab: 150 }
 ```
 
 ### 5. event subscribe
